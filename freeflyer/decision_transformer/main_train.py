@@ -12,7 +12,7 @@ import decision_transformer.manage as ART_manager
 from decision_transformer.manage import device
 
 # Initial parameters
-model_name_4_saving = 'checkpoint_ff_ctgrtg'
+model_name_4_saving = 'checkpoint_ff_prova_debug_ral'
 mdp_constr = True
 datasets, dataloaders = ART_manager.get_train_val_test_data(mdp_constr=mdp_constr, timestep_norm=False)
 train_loader, eval_loader, test_loader = dataloaders
@@ -105,13 +105,17 @@ accelerator.print({"loss/eval": eval_loss, "loss/state": loss_state, "loss/actio
 eval_steps = 500
 samples_per_step = accelerator.state.num_processes * train_loader.batch_size
 #torch.manual_seed(4)
+n_eval_max = 8100
 
 model.train()
 completed_steps = 0
 log = {
     'loss':[],
     'loss_state':[],
-    'loss_action':[]
+    'loss_action':[],
+    'train_loss' : [],
+    'train_loss_state' : [],
+    'train_loss_action' : []
 }
 '''log = np.load(root_folder + '/decision_transformer/saved_files/checkpoints/' + model_name_4_saving + '/log.npz', allow_pickle=True)['log'].item()'''
 for epoch in range(num_train_epochs):
@@ -152,6 +156,9 @@ for epoch in range(num_train_epochs):
                 log['loss'].append(eval_loss)
                 log['loss_state'].append(loss_state)
                 log['loss_action'].append(loss_action)
+                log['train_loss'].append(loss.item())
+                log['train_loss_state'].append(loss_i_state.item())
+                log['train_loss_action'].append(loss_i_action.item())
                 model.train()
                 accelerator.wait_for_everyone()
             if (step % (eval_steps*10)) == 0:
@@ -160,3 +167,5 @@ for epoch in range(num_train_epochs):
                 np.savez_compressed(root_folder + '/decision_transformer/saved_files/checkpoints/' +model_name_4_saving+ '/log',
                             log = log
                             )
+                if step >= n_eval_max*eval_steps:
+                    break

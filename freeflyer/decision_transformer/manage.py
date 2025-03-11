@@ -700,7 +700,7 @@ def torch_model_inference_dyn(model, test_loader, data_sample, rtg_perc=1., ctg_
 def torch_check_koz_constraint(states, obs_positions, obs_radii):
 
     constr_koz = torch.norm(states[None,:2] - obs_positions, 2, dim=1) - obs_radii
-    constr_koz_violation = (1*(constr_koz <= 0)).sum().item()
+    constr_koz_violation = (1*(constr_koz <= -1e-6)).sum().item()
 
     return constr_koz_violation
 

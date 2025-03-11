@@ -28,6 +28,7 @@ experiments_local/
 *.pth
 *.pt
 *.npy
+*.safetensors
 
 # Python stuff
 # Byte-compiled / optimized / DLL files

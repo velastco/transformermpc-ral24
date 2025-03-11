@@ -152,7 +152,7 @@ class FreeflyerModel:
         # Problem formulation
         prob = cp.Problem(cp.Minimize(cost), constraints)
 
-        prob.solve(solver=cp.ECOS, verbose=False)
+        prob.solve(solver=cp.MOSEK, verbose=False)
         if prob.status == 'infeasible':
             print("[solve]: Problem infeasible. [obstacle avoidance]:", obs_av)
             s_opt = None
@@ -342,6 +342,6 @@ def compute_constraint_to_go(states, obs_positions, obs_radii):
 def check_koz_constraint(states, obs_positions, obs_radii):
 
     constr_koz = np.linalg.norm(states[None,:,:2] - obs_positions[:,None,:], axis=2) - obs_radii[:,None]
-    constr_koz_violation = 1*(constr_koz <= 0)
+    constr_koz_violation = 1*(constr_koz <= -1.e-6)
 
     return constr_koz, constr_koz_violation

@@ -558,22 +558,23 @@ class RpodEnv():
             ax = fig.add_subplot(projection='3d')
             ART_lines, ARTMPC_lines, history_lines, maneuver_ART_lines, maneuver_ARTscp_lines = [], [], [], [], []
             
-            maneuver_ART_lines = ax.plot3D(maneuver_rtn_ART[1,:], maneuver_rtn_ART[2,:], maneuver_rtn_ART[0,:], color=[0.2,0.2,0.2], linewidth=0.5, label=mpc_label+'$_{total} $')[0]
-            maneuver_ARTscp_lines = ax.plot3D(maneuver_rtn_scpART[1,:], maneuver_rtn_scpART[2,:], maneuver_rtn_scpART[0,:], color='r', linewidth=0.5, label='scp'+mpc_label+'$_{total} $')[0]
+            maneuver_ART_lines = ax.plot3D(maneuver_rtn_ART[1,:], maneuver_rtn_ART[2,:], maneuver_rtn_ART[0,:], color=[0.5,0.5,0.5], linewidth=1, label=mpc_label+'$_{global}$')[0]
+            maneuver_ARTscp_lines = ax.plot3D(maneuver_rtn_scpART[1,:], maneuver_rtn_scpART[2,:], maneuver_rtn_scpART[0,:], color='c', linewidth=1, label=mpc_label+'-SCP')[0]
             pell = ax.plot_surface(self.y_ell, self.z_ell, self.x_ell, rstride=1, cstride=1, color='r', linewidth=0, alpha=0.3, label='keep-out-zone')
             pell._facecolors2d = pell._facecolor3d
             pell._edgecolors2d = pell._edgecolor3d
             pcone = ax.plot_surface(self.cone_plotting_param['t_cone'], self.cone_plotting_param['n_cone'], self.cone_plotting_param['r_cone'], rstride=1, cstride=1, color='g', linewidth=0, alpha=0.3, label='approach cone')
             pcone._facecolors2d = pcone._facecolor3d
             pcone._edgecolors2d = pcone._edgecolor3d
-            ART_lines = ax.plot3D(plan_rtn_ART[1,:], plan_rtn_ART[2,:], plan_rtn_ART[0,:], color="b", linewidth=1.5, label=mpc_label)[0]
-            ARTMPC_lines = ax.plot3D(plan_rtn_ARTMPC[1,:], plan_rtn_ARTMPC[2,:], plan_rtn_ARTMPC[0,:], color="g", linewidth=1.5, label=mpc_label+'-MPC')[0]
-            history_lines = ax.plot3D(history_rtn[1,:], history_rtn[2,:], history_rtn[0,:], color="k", linewidth=1.5, label='env')[0]
-            ax.set_xlabel('$\delta r_T$ [m]', fontsize=10)
-            ax.set_ylabel('$\delta r_N$ [m]', fontsize=10)
-            ax.set_zlabel('$\delta r_R$ [m]', fontsize=10)
+            ART_lines = ax.plot3D(plan_rtn_ART[1,:], plan_rtn_ART[2,:], plan_rtn_ART[0,:], color="b", linewidth=2.5, label=mpc_label+'$_{local}$')[0]
+            ARTMPC_lines = ax.plot3D(plan_rtn_ARTMPC[1,:], plan_rtn_ARTMPC[2,:], plan_rtn_ARTMPC[0,:], color="g", linewidth=2.5, label=mpc_label+'-MPC')[0]
+            history_lines = ax.plot3D(history_rtn[1,:], history_rtn[2,:], history_rtn[0,:], color="k", linewidth=2.5, label='env')[0]
+            ax.set_xlabel('T [m]', fontsize=15)
+            ax.set_ylabel('N [m]', fontsize=15)
+            ax.set_zlabel('R [m]', fontsize=15)
             ax.grid(True)
-            ax.legend(loc='best', fontsize=10)
+            ax.set_aspect('equal')
+            ax.legend(loc='best', fontsize=14, ncol=2)
 
         else:
             fig = ax.figure

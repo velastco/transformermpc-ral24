@@ -108,14 +108,17 @@ accelerator.print({"loss/eval": eval_loss, "loss/state": loss_state, "loss/actio
 
 eval_steps = 500
 samples_per_step = accelerator.state.num_processes * train_loader.batch_size
-torch.manual_seed(4)
+#torch.manual_seed(4)
 
 model.train()
 completed_steps = 0
 log = {
     'loss':[],
     'loss_state':[],
-    'loss_action':[]
+    'loss_action':[],
+    'train_loss' : [],
+    'train_loss_state' : [],
+    'train_loss_action' : []
 }
 for epoch in range(num_train_epochs):
     for step, batch in enumerate(train_dataloader, start=0):
@@ -155,6 +158,9 @@ for epoch in range(num_train_epochs):
                 log['loss'].append(eval_loss)
                 log['loss_state'].append(loss_state)
                 log['loss_action'].append(loss_action)
+                log['train_loss'].append(loss.item())
+                log['train_loss_state'].append(loss_i_state.item())
+                log['train_loss_action'].append(loss_i_action.item())
                 model.train()
                 accelerator.wait_for_everyone()
             if (step % (eval_steps*10)) == 0:
