@@ -58,7 +58,7 @@ class FreeflyerEnv():
             data_stats = dataloader.dataset.data_stats
 
             # Time characteristics and discretization of the manuever
-            self.dt = dt.item()
+            self.dt = np.round(dt.item(),1)
 
             # Fill initial conditions
             self.__load_state(np.array((states_i[0, 0, :] * data_stats['states_std'][0]) + data_stats['states_mean'][0]))
@@ -72,7 +72,7 @@ class FreeflyerEnv():
 
         elif reset_mode == 'det':
             # Time characteristics and discretization of the manuever
-            self.dt = reset_condition[0]
+            self.dt = np.round(reset_condition[0],1)
 
             # Fill initial conditions
             self.__load_state(reset_condition[1])

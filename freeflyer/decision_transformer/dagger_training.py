@@ -31,6 +31,8 @@ def for_computation(input_iterable):
     current_idx = input_iterable[0]
     input_dict = input_iterable[1]
     model = input_dict['model']
+    n_dagger = input_dict['n_dagger']
+    n_data_cl = input_dict['n_data_cl']
     train_loader = input_dict['train_loader']
     mdp_constr = input_dict['mdp_constr']
     mpc_steps_min = input_dict['mpc_steps_min']
@@ -62,7 +64,7 @@ def for_computation(input_iterable):
            'context_goal_norm' : []
           }
    
-    np.random.seed(int(datetime.now().timestamp()))
+    np.random.seed(int(n_dagger*n_data_cl) + current_idx)
     sample = train_loader.dataset.getix(np.random.randint(0,train_loader.dataset.n_data))
     if not mdp_constr:
         states_i, actions_i, rtgs_i, goal_i, timesteps_i, attention_mask_i, dt, time_sec, ix = sample
@@ -168,7 +170,6 @@ def for_computation(input_iterable):
                 correction_instant_pred['dv_CVX'] = cvx_traj['dv']
                 correction_instant_pred['state_CVXMPC'] = cvxMPC_traj['state']
                 correction_instant_pred['dv_CVXMPC'] = cvxMPC_traj['dv']
-                correction_instant_pred['time'] = cvx_traj['time']
                 correction_pred_history.append(correction_instant_pred)
 
                 # Run the environment forward based on ART+SCP or CVX+SCP control
@@ -221,9 +222,8 @@ if __name__ == '__main__':
     num_processes = 20
     p = Pool(processes=num_processes)
     n_dagger_i = 0
-    N_dagger_max = 20    
-    # Select radomically the seed
-    np.random.seed(int(datetime.now().timestamp()))
+    N_dagger_max = 20
+    
     for n_dagger in range(n_dagger_i, N_dagger_max):
 
         print('================== DAGGER ITERATION', str(n_dagger), '====================')
@@ -242,6 +242,8 @@ if __name__ == '__main__':
         N_data_test = 2000#4000
         other_args = {
             'model' : model,
+            'n_dagger' : n_dagger,
+            'n_data_cl' : N_data_test,
             'train_loader' : train_loader_ol,
             'mdp_constr' : mdp_constr,
             'mpc_steps_min' : 10,
@@ -419,6 +421,8 @@ if __name__ == '__main__':
 
         # Part of the training dataset coming from open-loop dataset
         n_ol = n*9 if (not train_only_on_cl) else 0
+        seed = n_dagger
+        np.random.seed(seed)
         rand_ix = np.random.choice(np.arange(train_loader_ol.dataset.n_data), n_ol, replace=False)
         ol_train_data = {
             'states' : train_loader_ol.dataset.data['states'][rand_ix, :],
@@ -472,6 +476,7 @@ if __name__ == '__main__':
             batch_size=4,
             num_workers=0,
         )
+        eval_loader_ol.dataset.target = True
         cl_eval_loader = TTO_manager.DataLoader(
             cl_val_dataset,
             sampler=torch.utils.data.RandomSampler(
@@ -504,9 +509,10 @@ if __name__ == '__main__':
         model.to(TTO_manager.device);
         optimizer = AdamW(model.parameters(), lr=3e-5)
         accelerator = Accelerator(mixed_precision='no', gradient_accumulation_steps=8)
-        model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
+        model, optimizer, train_dataloader, eval_dataloader_ol = accelerator.prepare(
             model, optimizer, train_loader, ol_eval_loader
         )
+        eval_dataloader_cl = accelerator.prepare(cl_eval_loader)
         num_training_steps = 10000000000
         lr_scheduler = get_scheduler(
             name="linear",
@@ -530,7 +536,7 @@ if __name__ == '__main__':
             losses_action_cl = []
             for step in range(eval_iters):
                 # Evaluate Open-loop data
-                data_iter_ol = iter(ol_eval_loader)
+                data_iter_ol = iter(eval_dataloader_ol)
                 states_i, actions_i, rtgs_i, ctgs_i, goal_i, target_states_i, target_actions_i, timesteps_i, attention_mask_i, _, _, _ = next(data_iter_ol)
                 with torch.no_grad():
                     state_preds, action_preds = model(
@@ -550,7 +556,7 @@ if __name__ == '__main__':
                 losses_action_ol.append(accelerator.gather(loss_i))
 
                 # Evaluate Open-loop data
-                data_iter_cl = iter(cl_eval_loader)
+                data_iter_cl = iter(eval_dataloader_cl)
                 states_i, actions_i, rtgs_i, ctgs_i, goal_i, target_states_i, target_actions_i, timesteps_i, attention_mask_i, _, _, _ = next(data_iter_cl)
                 with torch.no_grad():
                     state_preds, action_preds = model(
@@ -579,6 +585,13 @@ if __name__ == '__main__':
             model.train()
             return (loss_ol.item(), loss_cl.item()), (loss_state_ol.item(), loss_state_cl.item()), (loss_action_ol.item(), loss_action_cl.item())
 
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
         eval_steps = 500
         n_eval_max = 50
         samples_per_step = accelerator.state.num_processes * train_loader.batch_size
@@ -592,7 +605,7 @@ if __name__ == '__main__':
             'loss_state_cl':[],
             'loss_action_cl':[]
         }
-        for step, batch in enumerate(train_loader, start=0):
+        for step, batch in enumerate(train_dataloader, start=0):
             with accelerator.accumulate(model):
                 states_i, actions_i, rtgs_i, ctgs_i, goal_i, target_states_i, target_actions_i, timesteps_i, attention_mask_i, _, _, _ = batch
                 state_preds, action_preds = model(

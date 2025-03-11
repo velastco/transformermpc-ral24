@@ -209,7 +209,7 @@ class AutonomousFreeflyerTransformerMPC():
                 J_vect[scp_iter] = cost
                 
                 # compute error
-                trust_error = np.max(np.linalg.norm(states - states_ref, axis=0))
+                trust_error = np.max(np.linalg.norm(states.T - states_ref.T, axis=0))
                 if scp_iter > 0:
                     DELTA_J = cost_prev - cost
 
@@ -689,7 +689,7 @@ class ConvexMPC():
             if not np.char.equal(feas,'infeasible'):
                 J_vect[scp_iter] = cost
                 # compute error
-                trust_error = np.max(np.linalg.norm(states - states_ref, axis=0))
+                trust_error = np.max(np.linalg.norm(states.T - states_ref.T, axis=0))
                 if scp_iter > 0:
                     DELTA_J = cost_prev - cost
 
@@ -769,7 +769,7 @@ class ConvexMPC():
             if not np.char.equal(feas,'infeasible'):
                 J_vect[scp_iter] = cost
                 # compute error
-                trust_error = np.max(np.linalg.norm(states - states_ref, axis=0))
+                trust_error = np.max(np.linalg.norm(states.T - states_ref.T, axis=0))
                 if scp_iter > 0:
                     DELTA_J = cost_prev - cost
 
@@ -977,7 +977,7 @@ class MyopicConvexMPC():
             if not np.char.equal(feas,'infeasible'):
                 J_vect[scp_iter] = cost
                 # compute error
-                trust_error = np.max(np.linalg.norm(states - states_ref, axis=0))
+                trust_error = np.max(np.linalg.norm(states.T - states_ref.T, axis=0))
                 if scp_iter > 0:
                     DELTA_J = cost_prev - cost
 
@@ -1058,7 +1058,7 @@ class MyopicConvexMPC():
             if not np.char.equal(feas,'infeasible'):
                 J_vect[scp_iter] = cost
                 # compute error
-                trust_error = np.max(np.linalg.norm(states - states_ref, axis=0))
+                trust_error = np.max(np.linalg.norm(states.T - states_ref.T, axis=0))
                 if scp_iter > 0:
                     DELTA_J = cost_prev - cost
 
