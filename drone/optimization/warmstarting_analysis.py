@@ -196,7 +196,7 @@ if __name__ == '__main__':
     mdp_constr = True
     transformer_ws = 'dyn' # 'dyn'/'ol'
     transformer_model_name = 'checkpoint_quad_random_forest_ctgrtg'
-    transformer_model_name_dag = 'checkpoint_quad_random_forest_ctgrtg_cl_7'
+    transformer_model_name_dag = 'checkpoint_quad_random_forest_ctgrtg_cl_0'
     import_config = DT_manager.transformer_import_config(transformer_model_name)
     set_start_method('spawn')
     num_processes = 20

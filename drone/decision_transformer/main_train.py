@@ -13,7 +13,7 @@ from decision_transformer.manage import device
 from optimization.quad_scenario import dataset_scenario
 
 # Initial parameters
-model_name_4_saving = 'checkpoint_randt_forest_ctgrtg'
+model_name_4_saving = 'checkpoint_quad_random_forest_ctgrtg'
 mdp_constr = True
 datasets, dataloaders = ART_manager.get_train_val_test_data(mdp_constr=mdp_constr, dataset_scenario=dataset_scenario, timestep_norm=False)
 train_loader, eval_loader, test_loader = dataloaders

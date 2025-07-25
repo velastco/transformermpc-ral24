@@ -255,7 +255,7 @@ if __name__ == '__main__':
     timestep_norm = import_config['timestep_norm']
     dataset_scenario = import_config['dataset_scenario']
     transformer_model_names = ['checkpoint_quad_random_forest_ctgrtg',
-                               'checkpoint_quad_random_forest_ctgrtg_cl_7',
+                               'checkpoint_quad_random_forest_ctgrtg_cl_0',
                                None,
                                None,
                                None,

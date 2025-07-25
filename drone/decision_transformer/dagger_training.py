@@ -7,6 +7,7 @@ sys.path.append(root_folder)
 import numpy as np
 import numpy.linalg as la
 import torch
+import torch.serialization
 
 from transformers import DecisionTransformerConfig
 import decision_transformer.manage as ART_manager
@@ -25,9 +26,14 @@ import time
 from datetime import datetime
 import copy
 
+# torch.serialization.add_safe_globals([np.core.multiarray._reconstruct])
+
+torch.serialization.add_safe_globals([np.ndarray])
+torch.serialization.safe_globals([np._core.multiarray._reconstruct])
+
 def for_computation(input_iterable):
 
-    # Extract input
+    # Extract input\
     current_idx = input_iterable[0]
     input_dict = input_iterable[1]
     model = input_dict['model']
@@ -233,7 +239,7 @@ if __name__ == '__main__':
         model = ART_manager.get_DT_model(current_transformer_model_name, train_loader_ol, eval_loader_ol)
 
         # Parallel for inputs
-        N_data_test = 4000
+        N_data_test = 10  # Original 4000
         other_args = {
             'model' : model,
             'train_loader' : train_loader_ol,
@@ -391,6 +397,7 @@ if __name__ == '__main__':
                 'data_stats' : data_stats
             }
         else:
+            assert previous_transformer_model_name is not None, "Model name is None"
             # Load the previous cl_train_data_dagger
             cl_train_data_dagger = torch.load(root_folder + '/optimization/saved_files/closed_loop/dagger_cl_dataset/cl_train_data_dagger_' + previous_transformer_model_name + '.pth')
             # Extend cl_train_data_dagger with current closed_loop data
@@ -501,7 +508,7 @@ if __name__ == '__main__':
         model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
             model, optimizer, train_loader, ol_eval_loader
         )
-        num_training_steps = 10000000000
+        num_training_steps = 100000# Original: 10000000000
         lr_scheduler = get_scheduler(
             name="linear",
             optimizer=optimizer,
@@ -573,7 +580,7 @@ if __name__ == '__main__':
             model.train()
             return (loss_ol.item(), loss_cl.item()), (loss_state_ol.item(), loss_state_cl.item()), (loss_action_ol.item(), loss_action_cl.item())
 
-        eval_steps = 500
+        eval_steps = 50 # original 500
         n_eval_max = 50
         samples_per_step = accelerator.state.num_processes * train_loader.batch_size
         model.train()
